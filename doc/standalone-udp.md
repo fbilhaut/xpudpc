@@ -1,0 +1,149 @@
+# Standalone Python & UDP
+
+(Source: https://xppython3.readthedocs.io/en/latest/development/udp/index.html)
+
+In addition to plugins, X-Plane supports external communications via UDP. This
+allows any number of separate processes (potentially on separate computers) to
+get and set data remotely and execute some commands.
+
+This is *completely* unrelated to XPPython3, but as you’re programming in python
+I figured I might as well introduce you to this method of interaction as well.
+
+## Intro to UDP
+
+UDP simply sends one packet of data – like throwing a rock – it might make it to the receiver,
+it might not (as opposed to TCP, which is more like a pipe.) Packets are not guaranteed to
+arrive in order, nor are they even guaranteed to arrive. But they’re quick, with low overhead.
+
+The size of the packet is limited by the protocol – about 65k bytes. The content of
+the packet can be anything, but the sender and receiver have to agree.
+
+## UDP and Python
+
+UDP is pretty simple: you’ll create a UDP (i.e., DATAGRAM) socket, and then use that socket
+to send information to a remote port:
+
+```python
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+msg = myMakeMsg()
+sock.sendto(msg, (X_PLANE_IP, UDP_PORT))
+```
+
+Receiving information is similarly simple:
+
+```python
+data, addr = sock.recvfrom(2048)
+handleData(data)
+```
+
+The more difficult part is working this `sendto()` and `recvfrom()` into a working program
+so you don’t get confused while interleaving sends and receives. (You can put the receiver in a
+python thread. See example in [RREF - Get Datarefs](rref.html).)
+
+## UDP and X-Plane
+
+X-Plane understands a particular format, described in
+**Exchanging Data with X-Plane.rtfd** under **<XP>/Instructions**.
+However, *that document is not accurate*. I suppose because it’s just not been updated in a while, but
+it no longer matches with what X-Plane 11.55 or 12 does.
+
+X-Plane’s interface is (usually) described using C language structures and expects a particular size
+and encoding of data. You’ll have to format (‘pack’)
+the python data into the proper structure before sending it to X-Plane, and unpack any received data in a similar manner.
+
+The easiest way to pack and unpack is to use the python `struct` module. For example:
+
+```python
+cmd = b'RREF'
+freq = 1
+index = 0
+msg = struct.pack("<4sxii400s", cmd, freq, index, b'sim/aircraft/engines/acf_num_engines')
+```
+
+The initial string `<4sxii400s` describes how to pack the remaining arguments:
+
+| `<` | little endian (i.e., least significant byte in the lowest memory position) |
+| --- | --- |
+| `4s` | a 4-byte object, commonly string, e.g., ‘RREF’, expressed as a bytes: b’RREF’. |
+| `x` | a null byte, or 0x00. X-Plane is looking for a null-terminated 4-character string & this encodes the null value. (does not consume an argument). Yes, you could use `5s`, without the `x` for the same effect, but this method emphasizes the usable command is a 4-character value |
+| `i` | a 4-byte integer |
+| `i` | another 4-byte integer (you could also combine these as `2i`, which consumes two integer arguments) |
+| `400s` | a 400-byte object. Note that Python pads and zero-fills to fit 400 bytes. |
+
+Basically what you’ll do is “find” X-Plane – the host IP address and port (See *Connecting with X-Plane*, next),
+and then you’ll send one or more command packets to it & wait for data packets.
+
+### Connecting with X-Plane
+
+X-Plane automatically broadcasts a “beacon” on the network, allowing other programs
+to find it. Ideally, you should listen for this beacon to tell your standalone program
+a) X-Plane is running; and, b) where it is located.
+
+Multicast beacons are pretty standard, the only “custom” aspects are which port the
+multicast is on (49707 for X-Plane) and the data contents of the beacon itself.
+
+See example code in [find_xp()](https://xppython3.readthedocs.io/en/latest/_static/find_xp.py)
+which will wait for X-Plane to startup and will then
+return information about the version of X-Plane found.
+
+You can use it like:
+
+```python
+beacon = find_xp()
+port = beacon['port']
+ip = beacon['ip']
+```
+
+By default, X-Plane 11 is set for UDP networking. You do not have to enable anything under X-Plane Settings->Network.
+This includes External Visuals, External Apps, or UDP Ports.
+
+> **Note:** XP 12 appears to disable UDP networking initially. Check Settings->Network page, and make sure
+“Accept incoming connections” is enabled.
+
+Note your socket related to the beacon is different from the socket you use to send and receive information
+from X-Plane. One you’ve *found* X-Plane, you can close the beacon socket.
+
+For initial debugging, it may be helpful to have X-Plane log networking data to Log.txt: that way you can
+see verify it is receiving what you think you’re sending. This can be enabled on Settings->General, select “Output network data to Log.txt”
+option under the Data section. The problem with this option is that it also logs all Beacon posts, so there
+will be lots of log entries.
+
+## X-Plane UDP Summary
+
+*SEND*
+
+| Cmd - Description | Structure |
+| --- | --- |
+| [ACFN - Load an Aircraft](acfn.html) | ACFN <index> |
+| [ACPR - Load and Init the Airplane at Location](acpr.html) | ACPR |
+| [ALRT - Display Alert Message](alrt.html) | ALRT |
+| [CMND - Execute Command](cmnd.html) | CMND <command> |
+| [DATA - Input to Data Output](data.html) | DATA <index><data1><data2><data3><data4><data5><data6><data7><data8> |
+| [DREF - Set Datarefs](dref.html) | DREF <value><dataref> |
+| [DSEL/USEL - Stream Data Output](dsel.html) | DSEL <index><index>… USEL <index><index>… |
+| [FAIL/RECO - Fail a System](fail.html) | FAIL <index> RECO <index> |
+| [FLIR - Forward Looking Infrared Images](flir.html) | FLIR <frequency> *(Deprecated since 11.41)* |
+| [ISE4/ISE6 - Set Network Parameters](ise4.html) | ISE4 <cmd><ip><enable> ISE6 <cmd><ip><enable> |
+| [LSND/SSND - Loop a Sound](lsnd.html) | LSND<index><freq><vol> SSND<index><freq><vol> |
+| [NFAL/NREC - Fail/Recover NavAid](nfal.html) | NFAL NREC |
+| [OBJN/OBJL - Load and Place Object](objn.html) | OBJN <index> OBJL <index><lat><lon><ele><on_ground><smoke_size> |
+| [PREL - Init the Airplane at Location](prel.html) | PREL <type_start><index><rwy_id><rwy_dir> <lat><lon><elev><spd> |
+| [RADR - Weather Radar](radr.html) | RADR <freq> |
+| [RESE - Reset Failures](rese.html) | RESE |
+| [RPOS - Request Aircraft Position](rpos.html) | RPOS <freq> |
+| [RREF - Get Datarefs](rref.html) | RREF <freq><index><dataref> |
+| [SIMO - Load or Save a Situation or Movie](simo.html) | SIMO<type> |
+| [SHUT/QUIT - Quit X-Plane](shut.html) | SHUT QUIT |
+| [SOUN - Play a Sound](soun.html) | SOUN<freq><vol> |
+| [VEHS - Drive X-Planes Visuals Single](vehs.html) | VEHS <lat><log><elev> |
+| [VEHX - Drive X-Planes Visuals](vehx.html) | VEHX <lat><log><elev> |
+
+*RECEIVE*
+
+| Cmd | In response to | Structure |
+| --- | --- | --- |
+| DATA | [DSEL/USEL - Stream Data Output](dsel.html) | DATA <index><val1><val2>…<val8> |
+| FLIR | [FLIR - Forward Looking Infrared Images](flir.html) | *(Deprecated since 11.41)* |
+| RADR | [RADR - Weather Radar](radr.html) | RADR <lon><lat><level><height> |
+| RPOS | [RPOS - Request Aircraft Position](rpos.html) | RPOS <lon><lat><elev> <vx><vy><vz><P><Q><R> |
+| RREF | [RREF - Get Datarefs](rref.html) | RREF <index><value><index><value>… |

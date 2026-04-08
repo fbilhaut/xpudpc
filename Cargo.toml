@@ -1,0 +1,8 @@
+[package]
+name = "xpudpc"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { version = "1", features = ["net", "time", "rt-multi-thread", "macros"] }
+socket2 = { version = "0.5", features = ["all"] }
