@@ -6,6 +6,8 @@ Communicate with a running X-Plane instance to read and set datarefs, stream
 aircraft position, execute commands, manage aircraft and objects, etc. 
 All over UDP with no plugins required.
 
+> NOTE: work in progress, alpha version, public API subject to change.
+
 ## Features
 
 - Read datarefs at a configurable frequency
