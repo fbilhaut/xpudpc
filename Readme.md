@@ -192,5 +192,6 @@ cargo run --example position-beacon
 
 - X-Plane listens on **port 49000** by default.
 - Replies are sent back to whichever IP/port the request came from.
-- All values are **little-endian**. Frequencies for RPOS and RADR are transmitted as **null-terminated ASCII strings** (not binary integers).
+- All values are **little-endian**. 
+- Frequencies for RPOS and RADR are transmitted as null-terminated ASCII strings.
 - The UDP beacon is multicast on group `239.255.1.1:49707`.
