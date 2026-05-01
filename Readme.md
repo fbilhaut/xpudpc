@@ -171,11 +171,15 @@ client.place_aircraft(&PlacementConfig {
 ### Driving visuals from an external flight model
 
 ```rust
+use xpudpc::Pose;
+
+let pose = Pose { lat, lon, ele, heading, pitch, roll };
+
 // Override X-Plane's flight model entirely (VEHX)
-client.drive_visuals(0, lat, lon, ele, heading, pitch, roll).await?;
+client.drive_visuals(0, pose).await?;
 
 // Or move the aircraft once without overriding the flight model (VEHS)
-client.move_aircraft(0, lat, lon, ele, heading, pitch, roll).await?;
+client.move_aircraft(0, pose).await?;
 ```
 
 ### Failures

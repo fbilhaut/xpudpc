@@ -5,7 +5,7 @@ use tokio::net::{ToSocketAddrs, UdpSocket, lookup_host};
 use crate::codec::writer::*;
 use crate::error::{Error, Result};
 use crate::response::Response;
-use crate::types::{placement::PlacementConfig, situation::SituationOp};
+use crate::types::{placement::PlacementConfig, pose::Pose, situation::SituationOp};
 
 // Receive buffer size
 const RECV_BUF: usize = 4096;
@@ -214,57 +214,25 @@ impl XPlaneClient {
     /// Drive X-Plane's visuals directly, overriding the flight model.
     ///
     /// `index` is the aircraft slot (0 = player aircraft, 1–19 = AI).
-    pub async fn drive_visuals(
-        &self,
-        index: i32,
-        lat: f64,
-        lon: f64,
-        ele: f64,
-        heading: f32,
-        pitch: f32,
-        roll: f32,
-    ) -> Result<()> {
-        self.send_veh(b"VEHX", index, lat, lon, ele, heading, pitch, roll)
-            .await
+    pub async fn drive_visuals(&self, index: i32, pose: Pose) -> Result<()> {
+        self.send_veh(b"VEHX", index, pose).await
     }
 
     /// Move an aircraft to a position without overriding the flight model.
-    pub async fn move_aircraft(
-        &self,
-        index: i32,
-        lat: f64,
-        lon: f64,
-        ele: f64,
-        heading: f32,
-        pitch: f32,
-        roll: f32,
-    ) -> Result<()> {
-        self.send_veh(b"VEHS", index, lat, lon, ele, heading, pitch, roll)
-            .await
+    pub async fn move_aircraft(&self, index: i32, pose: Pose) -> Result<()> {
+        self.send_veh(b"VEHS", index, pose).await
     }
 
-    async fn send_veh(
-        &self,
-        tag: &[u8; 4],
-        index: i32,
-        lat: f64,
-        lon: f64,
-        ele: f64,
-        heading: f32,
-        pitch: f32,
-        roll: f32,
-    ) -> Result<()> {
-        // Wire order: index (i32), lat (f64), lon (f64), ele (f64),
-        //             heading (f32), pitch (f32), roll (f32).
+    async fn send_veh(&self, tag: &[u8; 4], index: i32, pose: Pose) -> Result<()> {
         let mut buf = Vec::with_capacity(5 + 4 + 8 + 8 + 8 + 4 + 4 + 4);
         write_header(&mut buf, tag);
         write_i32(&mut buf, index);
-        write_f64(&mut buf, lat);
-        write_f64(&mut buf, lon);
-        write_f64(&mut buf, ele);
-        write_f32(&mut buf, heading);
-        write_f32(&mut buf, pitch);
-        write_f32(&mut buf, roll);
+        write_f64(&mut buf, pose.lat);
+        write_f64(&mut buf, pose.lon);
+        write_f64(&mut buf, pose.ele);
+        write_f32(&mut buf, pose.heading);
+        write_f32(&mut buf, pose.pitch);
+        write_f32(&mut buf, pose.roll);
         self.send(buf).await
     }
 
@@ -497,17 +465,12 @@ impl XPlaneClient {
 
     /// Place a loaded 3D object at a world position.
     ///
-    /// If `on_ground` is `true`, set `ele` to `0.0`; X-Plane will snap the
-    /// object to the terrain.
+    /// If `on_ground` is `true`, set `pose.ele` to `0.0`; X-Plane will snap
+    /// the object to the terrain.
     pub async fn place_object(
         &self,
         index: i32,
-        lat: f64,
-        lon: f64,
-        ele: f64,
-        heading: f32,
-        pitch: f32,
-        roll: f32,
+        pose: Pose,
         on_ground: bool,
         smoke_size: f32,
     ) -> Result<()> {
@@ -515,12 +478,12 @@ impl XPlaneClient {
         write_header(&mut buf, b"OBJL");
         write_i32(&mut buf, index);
         buf.extend_from_slice(&[0u8; 4]); // pad1
-        write_f64(&mut buf, lat);
-        write_f64(&mut buf, lon);
-        write_f64(&mut buf, ele);
-        write_f32(&mut buf, heading);
-        write_f32(&mut buf, pitch);
-        write_f32(&mut buf, roll);
+        write_f64(&mut buf, pose.lat);
+        write_f64(&mut buf, pose.lon);
+        write_f64(&mut buf, pose.ele);
+        write_f32(&mut buf, pose.heading);
+        write_f32(&mut buf, pose.pitch);
+        write_f32(&mut buf, pose.roll);
         write_i32(&mut buf, on_ground as i32);
         write_f32(&mut buf, smoke_size);
         buf.extend_from_slice(&[0u8; 4]); // pad2

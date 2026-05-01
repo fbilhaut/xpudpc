@@ -80,10 +80,8 @@ impl Beacon {
         let mut buf = [0u8; RECV_BUF];
         loop {
             let (n, src) = socket.recv_from(&mut buf).await?;
-            if let Ok(info) = Self::parse(&buf[..n], src) {
-                if info.application_host_id == 1 {
-                    return Ok(info);
-                }
+            if let Ok(info) = Self::parse(&buf[..n], src) && info.application_host_id == 1 {
+                return Ok(info);
             }
         }
     }

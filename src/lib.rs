@@ -89,5 +89,6 @@ pub use error::{Error, Result};
 pub use response::Response;
 pub use types::{
     data::DataOutput, dataref::DatarefValue, placement::PlacementConfig,
-    placement::StartType, position::AircraftPosition, radar::RadarPoint, situation::SituationOp,
+    placement::StartType, pose::Pose, position::AircraftPosition, radar::RadarPoint,
+    situation::SituationOp,
 };
