@@ -33,7 +33,7 @@ const DATAREF_DIM: usize = 400; // RREF dataref string field
 ///     let client = XPlaneClient::connect("127.0.0.1:49000").await?;
 ///
 ///     client.subscribe_dataref(10, 0, "sim/cockpit2/gauges/indicators/airspeed_kts_pilot").await?;
-///     client.request_position(30.0).await?;
+///     client.request_position(30).await?;
 ///
 ///     loop {
 ///         match client.recv().await? {

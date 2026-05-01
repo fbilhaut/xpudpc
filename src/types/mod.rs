@@ -1,4 +1,3 @@
-pub mod beacon;
 pub mod data;
 pub mod dataref;
 pub mod placement;

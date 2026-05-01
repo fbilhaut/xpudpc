@@ -11,8 +11,11 @@
 //! If you know X-Plane's address, connect directly:
 //!
 //! ```no_run
-//! let client = xpudpc::XPlaneClient::connect("127.0.0.1:49000")?;
-//! # Ok::<(), xpudpc::Error>(())
+//! #[tokio::main]
+//! async fn main() -> xpudpc::Result<()> {
+//!     let client = xpudpc::XPlaneClient::connect("127.0.0.1:49000").await?;
+//!     Ok(())
+//! }
 //! ```
 //!
 //! Or auto-discover X-Plane on the local network using the multicast beacon:
@@ -20,11 +23,12 @@
 //! ```no_run
 //! use std::time::Duration;
 //!
-//! let beacon = xpudpc::find_xplane(Some(Duration::from_secs(10)))?;
-//! let client = xpudpc::XPlaneClient::connect(
-//!     format!("{}:{}", beacon.ip, beacon.port)
-//! )?;
-//! # Ok::<(), xpudpc::Error>(())
+//! #[tokio::main]
+//! async fn main() -> xpudpc::Result<()> {
+//!     let beacon = xpudpc::Beacon::find(Some(Duration::from_secs(10))).await?;
+//!     let client = xpudpc::XPlaneClient::connect((beacon.ip, beacon.port)).await?;
+//!     Ok(())
+//! }
 //! ```
 //!
 //! ## Reading data
@@ -35,44 +39,41 @@
 //!
 //! ```no_run
 //! use xpudpc::{XPlaneClient, Response};
-//! use std::time::Duration;
 //!
-//! let client = XPlaneClient::connect("127.0.0.1:49000")?;
-//! client.set_recv_timeout(Some(Duration::from_secs(1)))?;
+//! #[tokio::main]
+//! async fn main() -> xpudpc::Result<()> {
+//!     let client = XPlaneClient::connect("127.0.0.1:49000").await?;
 //!
-//! // Subscribe to indicated airspeed, using index 0 as our identifier.
-//! client.subscribe_dataref(10, 0, "sim/cockpit2/gauges/indicators/airspeed_kts_pilot")?;
+//!     client.subscribe_dataref(10, 0, "sim/cockpit2/gauges/indicators/airspeed_kts_pilot").await?;
+//!     client.request_position(30).await?;
 //!
-//! // Stream position at 30 Hz.
-//! client.request_position(30.0)?;
-//!
-//! loop {
-//!     match client.recv()? {
-//!         Response::DatarefValues(refs) => {
-//!             for r in refs {
-//!                 println!("dataref {}: {:.1}", r.index, r.value);
+//!     loop {
+//!         match client.recv().await? {
+//!             Response::DatarefValues(refs) => {
+//!                 for r in refs {
+//!                     println!("dataref {}: {:.1}", r.index, r.value);
+//!                 }
 //!             }
+//!             Response::Position(pos) => {
+//!                 println!("lat={:.4} lon={:.4} alt={:.0}m", pos.latitude, pos.longitude, pos.elevation);
+//!             }
+//!             _ => {}
 //!         }
-//!         Response::Position(pos) => {
-//!             println!("lat={:.4} lon={:.4} alt={:.0}m", pos.latitude, pos.longitude, pos.elevation);
-//!         }
-//!         _ => {}
 //!     }
 //! }
-//! # Ok::<(), xpudpc::Error>(())
 //! ```
 //!
 //! ## Writing data
 //!
 //! ```no_run
-//! let client = xpudpc::XPlaneClient::connect("127.0.0.1:49000")?;
+//! #[tokio::main]
+//! async fn main() -> xpudpc::Result<()> {
+//!     let client = xpudpc::XPlaneClient::connect("127.0.0.1:49000").await?;
 //!
-//! // Set a dataref.
-//! client.set_dataref("sim/cockpit/switches/anti_ice_surf_heat_left", 1.0)?;
-//!
-//! // Execute a command.
-//! client.send_command("sim/flight_controls/flaps_up")?;
-//! # Ok::<(), xpudpc::Error>(())
+//!     client.set_dataref("sim/cockpit/switches/anti_ice_surf_heat_left", 1.0).await?;
+//!     client.send_command("sim/flight_controls/flaps_up").await?;
+//!     Ok(())
+//! }
 //! ```
 
 mod codec;
@@ -83,11 +84,11 @@ pub mod error;
 pub mod response;
 pub mod types;
 
-pub use beacon::find_xplane;
+pub use beacon::Beacon;
 pub use client::XPlaneClient;
 pub use error::{Error, Result};
 pub use response::Response;
 pub use types::{
-    beacon::BeaconInfo, data::DataOutput, dataref::DatarefValue, placement::PlacementConfig,
+    data::DataOutput, dataref::DatarefValue, placement::PlacementConfig,
     placement::StartType, position::AircraftPosition, radar::RadarPoint, situation::SituationOp,
 };

@@ -1,10 +1,10 @@
 use std::time::Duration;
-use xpudpc::{Response, XPlaneClient, find_xplane};
+use xpudpc::{Beacon, Response, XPlaneClient};
 
 #[tokio::main]
 async fn main() -> xpudpc::Result<()> {
     println!("Waiting for X-Plane beacon...");
-    let beacon = find_xplane(Some(Duration::from_secs(30))).await?;
+    let beacon = Beacon::find(Some(Duration::from_secs(30))).await?;
     println!(
         "Found X-Plane v{} at {}:{}\n",
         beacon.version_number, beacon.ip, beacon.port

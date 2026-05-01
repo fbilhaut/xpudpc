@@ -59,16 +59,16 @@ async fn main() -> xpudpc::Result<()> {
 
 ### Auto-discover via beacon
 
-X-Plane broadcasts a UDP beacon on the local network. Use `find_xplane` to
+X-Plane broadcasts a UDP beacon on the local network. Use `Beacon::find` to
 locate it automatically instead of hard-coding an address:
 
 ```rust
 use std::time::Duration;
-use xpudpc::{find_xplane, XPlaneClient};
+use xpudpc::{Beacon, XPlaneClient};
 
 #[tokio::main]
 async fn main() -> xpudpc::Result<()> {
-    let beacon = find_xplane(Some(Duration::from_secs(30))).await?;
+    let beacon = Beacon::find(Some(Duration::from_secs(30))).await?;
     println!("Found X-Plane v{} at {}:{}", beacon.version_number, beacon.ip, beacon.port);
 
     let client = XPlaneClient::connect((beacon.ip, beacon.port)).await?;
@@ -188,6 +188,9 @@ cargo run --example position
 
 # Same, but auto-discover X-Plane via beacon
 cargo run --example position-beacon
+
+# Stream COM1 radio state
+cargo run --example com1
 ```
 
 ## Protocol notes
