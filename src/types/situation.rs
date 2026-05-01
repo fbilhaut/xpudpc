@@ -1,4 +1,4 @@
-/// Operation type for [`XPlaneClient::situation`].
+/// Operation type for [`crate::XPlaneClient::situation`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SituationOp {
     SaveSituation,

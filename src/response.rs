@@ -4,24 +4,24 @@ use crate::types::{data::DataOutput, dataref::DatarefValue, position::AircraftPo
 
 /// A message received from X-Plane.
 ///
-/// Obtain values by calling [`XPlaneClient::recv`].
+/// Obtain values by calling [`crate::XPlaneClient::recv`].
 #[derive(Debug, Clone)]
 pub enum Response {
-    /// Aircraft position data, received after calling [`XPlaneClient::request_position`].
+    /// Aircraft position data, received after calling [`crate::XPlaneClient::request_position`].
     ///
     /// Field order in wire format: lon, lat, ele (doubles), then pitch/heading/roll/speeds/rates (floats).
     Position(AircraftPosition),
 
-    /// Weather radar scan points, received after calling [`XPlaneClient::request_radar`].
+    /// Weather radar scan points, received after calling [`crate::XPlaneClient::request_radar`].
     Radar(Vec<RadarPoint>),
 
-    /// Dataref values, received after calling [`XPlaneClient::subscribe_dataref`].
+    /// Dataref values, received after calling [`crate::XPlaneClient::subscribe_dataref`].
     ///
     /// A single packet may contain values for multiple subscribed datarefs.
     DatarefValues(Vec<DatarefValue>),
 
     /// A data output item, received when data streaming is enabled via
-    /// [`XPlaneClient::select_data`] or the X-Plane data output screen.
+    /// [`crate::XPlaneClient::select_data`] or the X-Plane data output screen.
     Data(DataOutput),
 }
 

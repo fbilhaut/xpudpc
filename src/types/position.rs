@@ -1,4 +1,4 @@
-/// Aircraft position received from an [`Response::Position`] (RPOS) packet.
+/// Aircraft position received from a [`crate::Response::Position`] (RPOS) packet.
 #[derive(Debug, Clone, PartialEq)]
 pub struct AircraftPosition {
     /// Longitude in degrees.

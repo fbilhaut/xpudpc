@@ -1,4 +1,4 @@
-/// One data output item from a [`Response::Data`] (DATA) packet.
+/// One data output item from a [`crate::Response::Data`] (DATA) packet.
 #[derive(Debug, Clone, PartialEq)]
 pub struct DataOutput {
     /// Data output screen index.

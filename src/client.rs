@@ -130,7 +130,7 @@ impl XPlaneClient {
     /// Append `[n]` to target a specific array element, e.g.
     /// `"sim/flightmodel/engine/POINT_thrust[0]"`.
     ///
-    /// Call [`unsubscribe_dataref`] to stop updates.
+    /// Call [`Self::unsubscribe_dataref`] to stop updates.
     pub async fn subscribe_dataref(&self, freq: i32, index: i32, dataref: &str) -> Result<()> {
         let mut buf = Vec::with_capacity(5 + 4 + 4 + DATAREF_DIM);
         write_header(&mut buf, b"RREF");
@@ -180,7 +180,7 @@ impl XPlaneClient {
 
     /// Request X-Plane to stream aircraft position at `freq` Hz.
     ///
-    /// Responses arrive as [`Response::Position`]. Use [`stop_position`] or
+    /// Responses arrive as [`Response::Position`]. Use [`Self::stop_position`] or
     /// call this with `freq = 0` to stop.
     pub async fn request_position(&self, freq: u32) -> Result<()> {
         self.send_freq_cmd(b"RPOS", freq).await
@@ -197,7 +197,7 @@ impl XPlaneClient {
 
     /// Request X-Plane to stream weather radar data (`freq` points per frame).
     ///
-    /// Responses arrive as [`Response::Radar`]. Use [`stop_radar`] to stop.
+    /// Responses arrive as [`Response::Radar`]. Use [`Self::stop_radar`] to stop.
     pub async fn request_radar(&self, freq: u32) -> Result<()> {
         self.send_freq_cmd(b"RADR", freq).await
     }
@@ -454,7 +454,7 @@ impl XPlaneClient {
         self.send_loop_sound(b"LSND", index, freq, vol, path).await
     }
 
-    /// Stop a looping sound started with [`start_looping_sound`].
+    /// Stop a looping sound started with [`Self::start_looping_sound`].
     pub async fn stop_looping_sound(
         &self,
         index: i32,

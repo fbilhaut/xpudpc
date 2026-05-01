@@ -1,4 +1,4 @@
-/// A single weather radar scan point from a [`Response::Radar`] (RADR) packet.
+/// A single weather radar scan point from a [`crate::Response::Radar`] (RADR) packet.
 #[derive(Debug, Clone, PartialEq)]
 pub struct RadarPoint {
     /// Longitude of the scan point in degrees.

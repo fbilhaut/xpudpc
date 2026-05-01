@@ -1,4 +1,4 @@
-/// Aircraft placement / start type for [`XPlaneClient::place_aircraft`].
+/// Aircraft placement / start type for [`crate::XPlaneClient::place_aircraft`].
 ///
 /// Use [`StartType::SpecifyLatLonEle`] to position the aircraft at arbitrary
 /// coordinates; set `airport_id` to `""` in that case.
@@ -40,8 +40,8 @@ impl From<StartType> for i32 {
     }
 }
 
-/// Aircraft placement parameters for [`XPlaneClient::place_aircraft`] and
-/// [`XPlaneClient::load_and_place_aircraft`].
+/// Aircraft placement parameters for [`crate::XPlaneClient::place_aircraft`] and
+/// [`crate::XPlaneClient::load_and_place_aircraft`].
 #[derive(Debug, Clone)]
 pub struct PlacementConfig<'a> {
     pub start_type: StartType,
