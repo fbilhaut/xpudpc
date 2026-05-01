@@ -18,15 +18,14 @@
 //! }
 //! ```
 //!
-//! Or auto-discover X-Plane on the local network using the multicast beacon:
+//! Or let the library discover X-Plane automatically via the multicast beacon:
 //!
 //! ```no_run
 //! use std::time::Duration;
 //!
 //! #[tokio::main]
 //! async fn main() -> xpudpc::Result<()> {
-//!     let beacon = xpudpc::Beacon::find(Some(Duration::from_secs(10))).await?;
-//!     let client = xpudpc::XPlaneClient::connect((beacon.ip, beacon.port)).await?;
+//!     let client = xpudpc::XPlaneClient::auto(Some(Duration::from_secs(10))).await?;
 //!     Ok(())
 //! }
 //! ```

@@ -71,6 +71,22 @@ impl XPlaneClient {
         })
     }
 
+    /// Auto-discover and connect to X-Plane in one step.
+    ///
+    /// Listens for the X-Plane multicast beacon, then connects to the first
+    /// instance found. Equivalent to calling [`Beacon::find`] followed by
+    /// [`XPlaneClient::connect`].
+    ///
+    /// Use [`Beacon::find`] directly if you need the beacon details (version
+    /// number, computer name, etc.) before connecting.
+    ///
+    /// [`Beacon::find`]: crate::Beacon::find
+    pub async fn auto(timeout: Option<Duration>) -> Result<Self> {
+        let beacon = crate::beacon::Beacon::find(timeout).await?;
+        Self::connect((beacon.ip, beacon.port)).await
+    }
+
+
     /// Receive the next packet from X-Plane.
     pub async fn recv(&self) -> Result<Response> {
         let mut buf = [0u8; RECV_BUF];

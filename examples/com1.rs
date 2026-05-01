@@ -10,7 +10,7 @@ const IDX_AVIONICS: i32 = 5;
 
 #[tokio::main]
 async fn main() -> xpudpc::Result<()> {
-    let client = XPlaneClient::connect("192.168.1.25:49000").await?;
+    let client = XPlaneClient::auto(None).await?;
 
     client
         .subscribe_dataref(

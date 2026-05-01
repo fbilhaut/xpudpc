@@ -3,7 +3,7 @@ use xpudpc::{Response, XPlaneClient};
 
 #[tokio::main]
 async fn main() -> xpudpc::Result<()> {
-    let client = XPlaneClient::connect("192.168.1.25:49000").await?;
+    let client = XPlaneClient::auto(None).await?;
 
     client.request_position(1).await?;
     println!("Streaming position at 1 Hz. Press Ctrl-C to stop.\n");
