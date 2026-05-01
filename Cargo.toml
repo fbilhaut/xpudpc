@@ -1,6 +1,13 @@
 [package]
 name = "xpudpc"
 version = "0.1.0"
+authors = ["Frédérik Bilhaut <frederik.bilhaut@gmail.com>"]
+license = "Apache-2.0"
+readme = "./Readme.md"
+keywords = ["xplane", "udp", "client"]
+homepage = "https://github.com/fbilhaut/xpudpc"
+repository = "https://github.com/fbilhaut/xpudpc"
+documentation = "https://docs.rs/xpudpc/"
 edition = "2024"
 
 [dependencies]
